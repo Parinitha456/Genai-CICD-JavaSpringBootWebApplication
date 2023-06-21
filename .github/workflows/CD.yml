@@ -1,0 +1,21 @@
+name: Pokédex CICD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ manualTrigger ]
+  pull_request:
+    branches: [ manualTrigger ]
+
+jobs:
+  build:
+    runs-on: 
+      - self-hosted
+      - label-1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+    
+      - name: Docker compose up
+        run: docker-compose up -d
