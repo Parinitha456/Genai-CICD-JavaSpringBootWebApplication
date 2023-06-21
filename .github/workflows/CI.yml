@@ -1,0 +1,53 @@
+name: CI Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - manualTrigger
+env:
+  SONAR_TOKEN: '75621cba6337eff300a0b42e8d68eb9d4cdbe709'
+  SONAR_HOST_URL: 'http://brillioonesonar.eastus.cloudapp.azure.com:9000'
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: 'temurin'
+
+      - name: Build with Maven
+        run: mvn clean package
+        
+      - name: Run Tests
+        run: mvn test
+      
+      - name: Publish Artifacts
+        uses: azure/CLI@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az storage blob upload-batch --destination gen-ai-javaspringboot --source target/*.jar --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
+      
+      
+      - name: Publish Build Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: target/*.jar
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v1.2.0
+        with:
+          SONAR_TOKEN: ${{env.SONAR_TOKEN }}
+          projectKey: ${{ env.sonar.projectKey }}
+          projectName: ${{ env.sonar.projectName }}
+          SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
