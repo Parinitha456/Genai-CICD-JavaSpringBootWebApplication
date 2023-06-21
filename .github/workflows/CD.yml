@@ -1,4 +1,4 @@
-name: Pokédex CICD
+name: CD pipeline
 
 on:
   workflow_dispatch:
